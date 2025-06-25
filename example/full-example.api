@@ -1,0 +1,146 @@
+syntax = "v1"
+
+info (
+	title:   "Full Example API"
+	desc:    "A comprehensive example of go-zero API features"
+	author:  "Demo Author"
+	email:   "demo@example.com"
+	version: "v1.0.0"
+)
+
+// Import other API files if needed
+// import "foo.api"
+// Type definitions
+type (
+	// Basic user information
+	UserInfo {
+		Id       int64  `json:"id"`
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Role     string `json:"role,optional"`
+		Age      int    `json:"age,optional"`
+		Avatar   string `json:"avatar,optional"`
+	}
+	// Login request
+	LoginReq {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	// Login response
+	LoginResp {
+		AccessToken  string   `json:"accessToken"`
+		TokenType    string   `json:"tokenType"`
+		ExpiresIn    int64    `json:"expiresIn"`
+		RefreshToken string   `json:"refreshToken"`
+		UserInfo     UserInfo `json:"userInfo"`
+	}
+	// Create user request
+	CreateUserReq {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
+		Role     string `json:"role,optional"`
+		Age      int    `json:"age,optional"`
+	}
+	// Update user request
+	UpdateUserReq {
+		Id       int64  `path:"id"`
+		Username string `json:"username,optional"`
+		Email    string `json:"email,optional"`
+		Role     string `json:"role,optional"`
+		Age      int    `json:"age,optional"`
+		Avatar   string `json:"avatar,optional"`
+	}
+	// Generic response
+	CommonResp {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}
+	// Pagination request
+	PaginationReq {
+		Page     int `form:"page,optional,default=1"`
+		PageSize int `form:"pageSize,optional,default=10"`
+	}
+	// User list response
+	UserListResp {
+		Total int64      `json:"total"`
+		List  []UserInfo `json:"list"`
+	}
+)
+
+@server (
+	jwt:        Auth
+	middleware: LogMiddleware
+)
+service example-api {
+	@doc (
+		summary:     "User login"
+		description: "Authenticate user and return JWT token"
+	)
+	@handler Login
+	post /api/auth/login (LoginReq) returns (LoginResp)
+
+	@doc (
+		summary:     "User registration"
+		description: "Create a new user account"
+	)
+	@handler Register
+	post /api/auth/register (CreateUserReq) returns (CommonResp)
+}
+
+@server (
+	jwt:        Auth
+	group:      user
+	middleware: LogMiddleware,RateLimitMiddleware
+)
+service example-api {
+	@doc (
+		summary:     "Get user profile"
+		description: "Get user information by ID"
+	)
+	@handler GetUser
+	get /api/users/:id returns (UserInfo)
+
+	@doc (
+		summary:     "Update user profile"
+		description: "Update user information"
+	)
+	@handler UpdateUser
+	put /api/users/:id (UpdateUserReq) returns (CommonResp)
+
+	@doc (
+		summary:     "Delete user"
+		description: "Delete user by ID"
+	)
+	@handler DeleteUser
+	delete /api/users/:id returns (CommonResp)
+
+	@doc (
+		summary:     "List users"
+		description: "Get paginated list of users"
+	)
+	@handler ListUsers
+	get /api/users (PaginationReq) returns (UserListResp)
+}
+
+@server (
+	jwt:        Auth
+	group:      profile
+	middleware: LogMiddleware
+)
+service example-api {
+	@doc (
+		summary:     "Update avatar"
+		description: "Update user avatar image"
+	)
+	@handler UpdateAvatar
+	post /api/profile/avatar returns (CommonResp)
+
+	@doc (
+		summary:     "Change password"
+		description: "Change user password"
+	)
+	@handler ChangePassword
+	post /api/profile/password returns (CommonResp)
+}
+
