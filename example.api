@@ -1,0 +1,43 @@
+syntax = "v1"
+
+info (
+	title:  "使用者服務"
+	desc:   "使用者管理系統 API"
+	author: "開發者"
+	email:  "dev@example.com"
+)
+
+type (
+	RegisterRequest {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Email    string `json:"email,optional"`
+	}
+	RegisterResponse {
+		Id       int64  `json:"id"`
+		Username string `json:"username"`
+		Token    string `json:"token"`
+	}
+	LoginRequest {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	LoginResponse {
+		Token string `json:"token"`
+	}
+)
+
+service user-api {
+	@doc (
+		summary: "使用者註冊"
+	)
+	@handler Register
+	post /api/user/register (RegisterRequest) returns (RegisterResponse)
+
+	@doc (
+		summary: "使用者登入"
+	)
+	@handler Login
+	post /api/user/login (LoginRequest) returns (LoginResponse)
+}
+
